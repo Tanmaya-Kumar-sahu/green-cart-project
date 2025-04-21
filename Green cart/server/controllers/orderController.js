@@ -40,7 +40,7 @@ export const placeOrderCod = async (req , res) => {
 }
 
 
-// Place Order Cod :/api/order/stripe
+// Place Order Stripe :/api/order/stripe
 export const placeOrderStripe = async (req , res) => {
     try {
         const {userId , items , address} = req.body
@@ -157,7 +157,7 @@ export const stripeWebHook = async (request , response) =>{
 
             await User.findByIdAndUpdate(userId,{cartItems:{}})
             break;
-        }case "payment_intent.failed" :{
+        }case "payment_intent.payment_failed" :{
             const paymentIntent = event.data.object;
             const paymentIntentId = paymentIntent.id;
 
@@ -178,7 +178,7 @@ export const stripeWebHook = async (request , response) =>{
             break;
     }
 
-    response.json({receaved : true})
+    response.json({received : true})
 }
 
 
