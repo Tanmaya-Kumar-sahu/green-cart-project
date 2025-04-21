@@ -1,5 +1,3 @@
-
-
 import Order from "../models/order.js"
 import Product from "../models/Product.js"
 import stripe from 'stripe'
@@ -15,10 +13,14 @@ export const placeOrderCod = async (req , res) => {
 
         //calculate amount using item 
 
-        let amount = await items.reduce(async (acc , item) =>{
+        let amount = 0;
+        for (const item of items) {
             const product = await Product.findById(item.product);
-            return (await acc) + product.offerPrice*item.quantity;
-        },0)
+            if (!product) {
+                throw new Error(`Product not found for id: ${item.product}`);
+            }
+            amount += product.offerPrice * item.quantity;
+        }
 
         // Add Tax Charge 2%
 
@@ -54,15 +56,19 @@ export const placeOrderStripe = async (req , res) => {
 
         //calculate amount using item 
 
-        let amount = await items.reduce(async (acc , item) =>{
+        let amount = 0;
+        for (const item of items) {
             const product = await Product.findById(item.product);
+            if (!product) {
+                throw new Error(`Product not found for id: ${item.product}`);
+            }
             productData.push({
                 name: product.name,
                 price: product.offerPrice,
                 quantity: item.quantity,
             })
-            return (await acc) + product.offerPrice*item.quantity;
-        },0)
+            amount += product.offerPrice * item.quantity;
+        }
 
         // Add Tax Charge 2%
 

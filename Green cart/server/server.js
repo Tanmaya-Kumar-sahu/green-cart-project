@@ -15,29 +15,47 @@ import { stripeWebHook } from "./controllers/orderController.js";
 const app = express()
 const port = process.env.PORT || 5000;
 
-await connectDB()
-await connectCloudinary()
-
 // Allow Multiple origins
-const allowedOrigins = ['http://localhost:5173']
+const allowedOrigins = ['http://localhost:5173', 'https://your-frontend-domain.vercel.app']
 
-app.post('/stripe',express.raw({type: 'application/json'}),stripeWebHook)
+// Stripe webhook needs raw body
+app.post('/stripe', express.raw({type: 'application/json'}), stripeWebHook)
 
 //Middleware configuration 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({origin: allowedOrigins,credentials: true}));
+app.use(cors({origin: allowedOrigins, credentials: true}));
 
- app.get ('/',(req,res)=> res.send("Api is working"))
- app.use('/api/user',userRouter)
- app.use('/api/seller',sellerRouter)
- app.use('/api/product',productRouter)
- app.use('/api/cart',cartRouter)
- app.use('/api/address',addressRouter)
- app.use('/api/order',orderRouter)
+// Routes
+app.get('/', (req, res) => res.send("Api is working"))
+app.use('/api/user', userRouter)
+app.use('/api/seller', sellerRouter)
+app.use('/api/product', productRouter)
+app.use('/api/cart', cartRouter)
+app.use('/api/address', addressRouter)
+app.use('/api/order', orderRouter)
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
 
- app.listen(port,()=>{
-    console.log(`server is running on http://localhost:${port}`);
-    
- })
+// Initialize database and cloudinary
+const startServer = async () => {
+    try {
+        await connectDB();
+        await connectCloudinary();
+        app.listen(port, () => {
+            console.log(`Server is running on port ${port}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+    }
+};
+
+startServer();
+
+// Export the Express API
+export default app;
